@@ -1,403 +1,329 @@
 import os
-import csv
-import datetime
+from entidades import Cliente, Produto, Venda
+from estruturas import ListaEncadeada, Fila, Pilha
 
-ARQUIVO_DADOS = "dados/estoque.csv"
-ARQUIVO_LOG = "dados/log.txt"
+COR_CADASTRO = '\033[96m'  # Ciano
+COR_LISTAGEM = '\033[92m'  # Verde
+COR_OPERACAO = '\033[93m'  # Amarelo
+COR_RELATORIO = '\033[95m' # Roxo
+COR_SISTEMA = '\033[91m'   # Vermelho
+RESET = '\033[0m'          # Volta para a cor padrao do terminal
+
+# Inicializacao estruturas globais
+clientes = ListaEncadeada()
+produtos = ListaEncadeada()
+vendas = Fila()
+historico = Pilha()
+
+# Nomes arquivos
+ARQ_CLIENTES = 'clientes.txt'
+ARQ_PRODUTOS = 'produtos.txt'
+ARQ_VENDAS = 'vendas.txt'
+
+def carregar_dados():
+    # Carrega clientes
+    if os.path.exists(ARQ_CLIENTES):
+        try:
+            with open(ARQ_CLIENTES, 'r') as f:
+                for linha in f:
+                    linha = linha.strip()
+                    if linha == "": continue
+                    partes = linha.split(';')
+                    if len(partes) == 2:
+                        clientes.inserir(Cliente(int(partes[0]), partes[1]))
+        except Exception as e:
+            print("Erro ao carregar clientes:", e)
+
+    # Carrega produtos
+    if os.path.exists(ARQ_PRODUTOS):
+        try:
+            with open(ARQ_PRODUTOS, 'r') as f:
+                for linha in f:
+                    linha = linha.strip()
+                    if linha == "": continue
+                    partes = linha.split(';')
+                    if len(partes) == 4:
+                        produtos.inserir(Produto(int(partes[0]), partes[1], int(partes[2]), float(partes[3])))
+        except Exception as e:
+            print("Erro ao carregar produtos:", e)
+
+    # Carrega vendas
+    if os.path.exists(ARQ_VENDAS):
+        try:
+            with open(ARQ_VENDAS, 'r') as f:
+                for linha in f:
+                    linha = linha.strip()
+                    if linha == "": continue
+                    partes = linha.split(';')
+                    if len(partes) == 5:
+                        vendas.enfileirar(Venda(int(partes[0]), int(partes[1]), int(partes[2]), int(partes[3]), float(partes[4])))
+        except Exception as e:
+            print("Erro ao carregar vendas:", e)
+
+def salvar_dados():
+    # Salva todos os clientes reescrevendo o arquivo
+    try:
+        with open(ARQ_CLIENTES, 'w') as f:
+            for c in clientes.listar_todos():
+                f.write(f"{c.id};{c.nome}\n")
+    except Exception as e:
+        print("Erro ao salvar clientes:", e)
+
+    # Salva todos os produtos
+    try:
+        with open(ARQ_PRODUTOS, 'w') as f:
+            for p in produtos.listar_todos():
+                f.write(f"{p.id};{p.nome};{p.quantidade};{p.preco}\n")
+    except Exception as e:
+        print("Erro ao salvar produtos:", e)
+
+    # Salva todas as vendas
+    try:
+        with open(ARQ_VENDAS, 'w') as f:
+            for v in vendas.listar_todos():
+                f.write(f"{v.id};{v.id_cliente};{v.id_produto};{v.quantidade};{v.valor_total}\n")
+    except Exception as e:
+        print("Erro ao salvar vendas:", e)
 
 
-# Paleta de Cores
-VERMELHO = '\033[91m'  # Cor vermelha para erros
-VERDE = '\033[32m'    # Cor verde para sucesso
-AMARELO = '\033[93m' # Cor amarela para avisos
-AZUL = '\033[94m'     # Cor azul para títulos e menus
-NONE = '\033[0m'     # Código para "resetar" a cor para o padrão
-NEGRITO = '\033[1m'  # Código para texto em negrito
+# FUNCOES PARA GERAR ID
+def gerar_id_cliente():
+    lista = clientes.listar_todos()
+    if len(lista) == 0: return 1
+    return max([c.id for c in lista]) + 1
+
+def gerar_id_produto():
+    lista = produtos.listar_todos()
+    if len(lista) == 0: return 1
+    return max([p.id for p in lista]) + 1
+
+def gerar_id_venda():
+    lista = vendas.listar_todos()
+    if len(lista) == 0: return 1
+    return max([v.id for v in lista]) + 1
 
 
-def limpar_terminal(): #Limpa o terminal para ficar mais organizado
-    os.system("cls")
-
-
-def salvar_estoque_csv(estoque_da_loja): #Salva os produtos no arquivo estoque.CSV
-    os.makedirs("dados", exist_ok=True)
-
-    with open(ARQUIVO_DADOS, mode="w", newline="", encoding="utf-8") as arquivo:
-        escritor = csv.writer(arquivo)
-        escritor.writerow(["id", "nome", "quantidade", "preco"])
-        for produto in estoque_da_loja:
-            escritor.writerow([
-                produto["id"],
-                produto["nome"],
-                produto["quantidade"],
-                produto["preco"]
-            ])
-
-
-def registrar_log(acao, nome_produto): #Registra as ações feitas no menu interativo, e registra no arquivo log.txt
-    
-    momento = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    os.makedirs("dados", exist_ok=True)
-    with open(ARQUIVO_LOG, mode="a", encoding="utf-8") as arquivo:
-        arquivo.write(f"[{momento}] {acao}: {nome_produto}\n")
-        
-def carregar_estoque_csv():
-
-    estoque_da_loja = []
-
-    if not os.path.exists(ARQUIVO_DADOS):
-        return estoque_da_loja, 1
-
-    with open(ARQUIVO_DADOS, mode="r", encoding="utf-8") as arquivo:
-        leitor = csv.DictReader(arquivo)
-        max_id = 0
-        for linha in leitor:
-            try:
-                produto = {
-                    "id": int(linha["id"]),
-                    "nome": linha["nome"],
-                    "quantidade": int(linha["quantidade"]),
-                    "preco": float(linha["preco"])
-                }
-                estoque_da_loja.append(produto)
-                if produto["id"] > max_id:
-                    max_id = produto["id"]
-            except (KeyError, ValueError):
-                continue
-
-    return estoque_da_loja, (max_id + 1 if max_id >= 1 else 1)
-        
+# MAIN E MENU
 def main():
-    estoque_da_loja, id_produto = carregar_estoque_csv() #Carrega o arquivo estoque.CSV e o último ID cadastrado. 
-
-    limpar_terminal()
+    carregar_dados()
     
     while True:
-        print(f'''
-            ====== {AZUL}CONTROLE DE ESTOQUE{NONE} =======
-            ---------------------------------- 
-            ========= MENU PRINCIPAL =========
-            
-            1. Cadastrar produtos
-            2. Listar produtos
-            3. Editar produto 
-            4. Excluir produto
-            5. Limpar toda a lista de produtos
-            6. Sair
-            
-            ==================================
-            ----------------------------------
-            ''')
-
+        print(f"\n{COR_SISTEMA}======================================={RESET}")
+        print(f"{COR_SISTEMA}            SISTEMA DE VENDAS             {RESET}")
+        print(f"{COR_SISTEMA}======================================={RESET}")
+        
+        print(f"\n{COR_CADASTRO}[ CADASTROS E GERENCIAMENTO ]{RESET}")
+        print("1. Cadastrar cliente")
+        print("2. Editar cliente")
+        print("3. Cadastrar produto")
+        print("4. Editar produto")
+        
+        print(f"\n{COR_LISTAGEM}[ CONSULTAS E LISTAGENS ]{RESET}")
+        print("5. Listar clientes")
+        print("6. Listar produtos do estoque")
+        print("7. Pesquisar produto (nome ou id)")
+        
+        print(f"\n{COR_OPERACAO}[ VENDAS E OPERACOES ]{RESET}")
+        print("8. Realizar venda")
+        print("9. Visualizar fila de vendas")
+        print("10. Desfazer ultima operacao")
+        
+        print(f"\n{COR_RELATORIO}[ RELATORIOS E TOTAIS ]{RESET}")
+        print("11. Exibir valor total do estoque")
+        print("12. Exibir valor total de vendas realizadas")
+        print("13. Exibir clientes e valores totais gastos")
+        
+        print(f"\n{COR_SISTEMA}[ SISTEMA ]{RESET}")
+        print("14. Sair")
+        
+        opcao_str = input("\nEscolha uma opcao: ")
+        
         try:
-            escolha_do_usuario = int(input("escolha uma opcão: "))
+            opcao = int(opcao_str)
         except ValueError:
-                print("Digite apenas número que contém no menu!")
+            print("Erro: Digite apenas numeros validos para o menu.")
+            continue
+
+        # --- BLOCO DE CADASTROS ---
+        if opcao == 1:
+            nome = input("Nome do cliente: ").strip()
+            if nome == "":
+                print("Erro: Nome nao pode ser vazio.")
                 continue
-        
-        limpar_terminal()
-        
-        # Cada escolha do usuário chama a função correspondente
+            
+            novo_id = gerar_id_cliente()
+            clientes.inserir(Cliente(novo_id, nome))
+            historico.empilhar({"acao": "cadastro_cliente", "id": novo_id})
+            salvar_dados()
+            print("Cliente cadastrado com sucesso!")
 
-        if escolha_do_usuario == 1:
-                    print("Cadastrar produto: ")
-                    cadastrar_produto(estoque_da_loja)
-
-        elif escolha_do_usuario == 2:
-                    print("Listar produtos")
-                    listar_produtos(estoque_da_loja)
-
-        elif escolha_do_usuario == 3:
-                    print("Editar produto")
-                    editar_produto(estoque_da_loja)
-
-        elif escolha_do_usuario == 4:
-                    print("Excluir produto")
-                    excluir_produto(estoque_da_loja)
-        elif escolha_do_usuario == 5:
-                    print("Limpar toda a lista de produtos")
-                    limpar_lista(lista_produtos=estoque_da_loja)
-
-        elif escolha_do_usuario == 6:
-                    print("Saindo, obrigado por utilizar nosso sistema!")
-                    break
-        else:  
-                    print("Opção invalida, tente novamente!")
-                    escolha_do_usuario =int(input("digite uma opcão: "))
-                    
-def gerar_novo_id(lista_produtos, clientes):
-    #NOVO ID PRODUTOS
-    """Verifica a lista e retorna o próximo ID válido."""
-    if not lista_produtos:
-        # Se a lista está vazia, o primeiro ID é 1
-        return 1
-    
-    # Pega o maior ID que existe na lista e soma 1
-    maior_id = max(produto['id'] for produto in lista_produtos)
-    return maior_id + 1
-
-
-    #NOVO ID CLIENTES
-    """Verifica a lista e retorna o próximo ID válido."""
-    if not clientes:
-        # Se a lista está vazia, o primeiro ID é 1
-        return 1
-    
-    # Pega o maior ID que existe na lista e soma 1
-    maior_id = max(cliente['id'] for cliente in clientes)
-    return maior_id + 1
-                    
-                    
-def cadastrar_cliente(clientes):
-    pass
-
-    nome_cliente = input("Digite o nome do cliente").strip().upper()
-    while not nome_cliente:
-        print(f"{VERMELHO}Nome não pode estar vazio!{NONE}")
-        nome_cliente = input("Digite o nome do cliente: ").strip().upper()
-        
-    # verificar se o cliente ja existe
-    cliente_ja_existe = False
-    for cliente in clientes:
-        #compara os nomes ignorando maiusculas e minusculas
-        if nome_cliente ["nome"].lower()  == nome_cliente.lower():
-            cliente_ja_existe = True
-            print(f"{VERMELHO}Erro:{NONE} O cliente '{nome_cliente}' já está existe (ID: {['id']}).")
-            print("Use a Opção" '''colocar opcao''' " (Editar) se quiser adicionar estoue ou alterar o preço.")
-            break
-        
-        if cliente_ja_existe:
-            return
-        # --- FIM DA VERIFICAÇÃO ---
-
-    # Se o 'if' acima não foi ativado, o cliente é novo e o código continua.
-    
-        valor_gasto = 0 #adiciona um espaço para o valor total gasto, cada compra temos que adicionar nesse espaço.
+        elif opcao == 2: # Editar Cliente
+            id_cliente = input("Digite o ID do cliente que deseja editar: ").strip()
+            
+            # Mostra o nome atual antes de editar
+            cliente_atual = clientes.buscar_por_id(id_cliente)
+            if cliente_atual:
+                print(f"Nome atual: {cliente_atual.nome}")
+                novo_nome = input("Digite o novo nome (ou aperte Enter para cancelar): ").strip()
                 
-    novo_cliente = {
-        "id": id_atual_cliente,
-        "nome": nome_cliente,
-        "valor gasto": valor_gasto
-    }
+                if novo_nome != "":
+                    # Chama o metodo que criamos na estrutura
+                    clientes.editar_por_id(id_busca=id_cliente, novo_nome=novo_nome)
+                    salvar_dados()
+                    print("Cliente atualizado com sucesso!")
+                else:
+                    print("Operacao cancelada. Nome mantido.")
+            else:
+                print("Erro: Cliente nao encontrado.")
 
-    '''estoque_da_loja.append(novo_produto)
-    salvar_estoque_csv(estoque_da_loja)
-    registrar_log("Cadastro de novo produto", nome)'''
+        elif opcao == 3:
+            nome = input("Nome do produto: ").strip()
+            if nome == "":
+                print("Erro: Nome nao pode ser vazio.")
+                continue
+            
+            try:
+                qtd = int(input("Quantidade inicial em estoque: "))
+                preco = float(input("Preco do produto: R$ "))
+                if qtd < 0 or preco <= 0:
+                    print("Erro: Quantidade nao pode ser negativa e preco deve ser maior que zero.")
+                    continue
+            except ValueError:
+                print("Erro: Valores numericos invalidos.")
+                continue
 
-    print(f"{VERDE}Cliente '{nome_cliente}' cadastrado com sucesso!{NONE}")
-        
-    pass
+            novo_id = gerar_id_produto()
+            produtos.inserir(Produto(novo_id, nome, qtd, preco))
+            historico.empilhar({"acao": "cadastro_produto", "id": novo_id})
+            salvar_dados()
+            print("Produto cadastrado com sucesso!")
 
-def listar_clientes():
-    pass
+        elif opcao == 4: # Editar Produto
+            id_produto = input("Digite o ID do produto que deseja editar: ").strip()
+            
+            # Mostra os dados atuais
+            produto_atual = produtos.buscar_por_id(id_produto)
+            if produto_atual:
+                print(f"Dados atuais -> Nome: {produto_atual.nome} | Preco: R$ {produto_atual.preco:.2f}")
+                
+                novo_nome = input("Novo nome (ou Enter para manter o atual): ").strip()
+                novo_preco_str = input("Novo preco (ou Enter para manter o atual): ").strip()
+                
+                # Trata o preco digitado
+                novo_preco = None
+                if novo_preco_str != "":
+                    try:
+                        novo_preco = float(novo_preco_str)
+                    except ValueError:
+                        print("Erro: O preco digitado nao e valido. O preco antigo sera mantido.")
 
-def cadastrar_produto(estoque_da_loja): 
+        # --- BLOCO DE LISTAGENS ---
+        elif opcao == 5:
+            lista = clientes.listar_todos()
+            if len(lista) == 0: print("Nenhum cliente cadastrado.")
+            else:
+                print("\nLista de Clientes:")
+                for c in lista: print(f"ID: {c.id} | Nome: {c.nome}")
 
-    id_atual = gerar_novo_id(estoque_da_loja)   
-    
-    print(f"=== {AZUL}Cadastrar produto{NONE} ===")
+        elif opcao == 6:
+            lista = produtos.listar_todos()
+            if len(lista) == 0: print("Nenhum produto em estoque.")
+            else:
+                print("\nEstoque atual:")
+                for p in lista: print(f"ID: {p.id} | Nome: {p.nome} | Qtd: {p.quantidade} | Preco: R$ {p.preco:.2f}")
 
-    nome = input("Digite o nome do produto: ").strip().upper()
-    
-    while not nome:
-        print(f"{VERMELHO}Nome não pode estar vazio!{NONE}")
-        nome = input("Digite o nome do produto: ").strip().upper()
-    
-    # --- VERIFICAÇÃO DE DUPLICIDADE ---
-    produto_ja_existe = False
-    for produto in estoque_da_loja:
-        # Compara os nomes ignorando maiúsculas/minúsculas
-        if produto['nome'].lower() == nome.lower(): 
-            produto_ja_existe = True
-            print(f"{VERMELHO}Erro:{NONE} O produto '{nome}' já está cadastrado (ID: {produto['id']}).")
-            print("Use a Opção 3 (Editar) se quiser adicionar estoue ou alterar o preço.")
+        elif opcao == 7:
+            termo = input("Digite o ID ou o Nome do produto: ").strip()
+            if termo == "": continue
+
+            produto_encontrado = produtos.buscar_por_id(termo)
+            if produto_encontrado:
+                print(f"Produto Encontrado -> ID: {produto_encontrado.id} | Nome: {produto_encontrado.nome} | Qtd: {produto_encontrado.quantidade}")
+            else:
+                resultados = produtos.buscar_por_nome(termo)
+                if len(resultados) == 0: print("Nenhum produto encontrado.")
+                else:
+                    for p in resultados: print(f"ID: {p.id} | Nome: {p.nome} | Qtd: {p.quantidade}")
+
+        # --- BLOCO DE OPERACOES ---
+        elif opcao == 8:
+            try:
+                id_cliente = int(input("ID do cliente: "))
+                id_produto = int(input("ID do produto: "))
+                qtd_venda = int(input("Quantidade a vender: "))
+            except ValueError:
+                print("Erro: Entradas devem ser numeros inteiros.")
+                continue
+
+            cliente = clientes.buscar_por_id(id_cliente)
+            produto = produtos.buscar_por_id(id_produto)
+
+            if cliente is None: print("Erro: Cliente nao encontrado."); continue
+            if produto is None: print("Erro: Produto nao encontrado."); continue
+            if qtd_venda <= 0: print("Erro: Quantidade de venda invalida."); continue
+            if produto.quantidade < qtd_venda: print(f"Erro: Estoque insuficiente ({produto.quantidade} disp.)."); continue
+
+            valor_total = qtd_venda * produto.preco
+            produto.quantidade -= qtd_venda 
+            
+            nova_venda_id = gerar_id_venda()
+            vendas.enfileirar(Venda(nova_venda_id, id_cliente, id_produto, qtd_venda, valor_total))
+            historico.empilhar({"acao": "venda", "id_produto": id_produto, "quantidade_vendida": qtd_venda})
+            salvar_dados()
+            print(f"Venda realizada! Valor Total: R$ {valor_total:.2f}")
+
+        elif opcao == 9:
+            lista = vendas.listar_todos()
+            if len(lista) == 0: print("Nenhuma venda realizada.")
+            else:
+                for v in lista: print(f"ID: {v.id} | Cliente: {v.id_cliente} | Prod: {v.id_produto} | Qtd: {v.quantidade} | Total: R$ {v.valor_total:.2f}")
+
+        elif opcao == 10:
+            ultima_acao = historico.desempilhar()
+            if ultima_acao is None:
+                print("Erro: Nao ha operacoes para desfazer.")
+                continue
+
+            tipo = ultima_acao["acao"]
+            if tipo == "cadastro_cliente":
+                clientes.remover_por_id(ultima_acao["id"])
+                print("Cadastro de cliente desfeito.")
+            elif tipo == "cadastro_produto":
+                produtos.remover_por_id(ultima_acao["id"])
+                print("Cadastro de produto desfeito.")
+            elif tipo == "venda":
+                prod = produtos.buscar_por_id(ultima_acao["id_produto"])
+                if prod: prod.quantidade += ultima_acao["quantidade_vendida"]
+                vendas.remover_ultimo()
+                print("Venda desfeita e estoque restaurado.")
+            salvar_dados()
+
+        # --- BLOCO DE RELATORIOS ---
+        elif opcao == 11:
+            lista = produtos.listar_todos()
+            total = sum([(p.quantidade * p.preco) for p in lista])
+            print(f"Valor total do estoque: R$ {total:.2f}")
+
+        elif opcao == 12:
+            lista = vendas.listar_todos()
+            total = sum([v.valor_total for v in lista])
+            print(f"Valor total de vendas: R$ {total:.2f}")
+
+        elif opcao == 13:
+            lista_clientes = clientes.listar_todos()
+            lista_vendas = vendas.listar_todos()
+            for c in lista_clientes:
+                gasto = sum([v.valor_total for v in lista_vendas if v.id_cliente == c.id])
+                print(f"Cliente: {c.nome} | Total Gasto: R$ {gasto:.2f}")
+
+        # --- SAIDA ---
+        elif opcao == 14:
+            print("Finalizando o sistema...")
             break
-    
-    if produto_ja_existe:
-        return
-    # --- FIM DA VERIFICAÇÃO ---
+            
+        else:
+            print("Erro: Opcao invalida.")
 
-    # Se o 'if' acima não foi ativado, o produto é novo e o código continua:
-
-    while True:
-        try:
-            quantidade = int(input("Digite a quantidade de produtos: "))
-            break
-        except ValueError:
-            print(f"{VERMELHO}Quantidade inválida! Deve ser um número inteiro.{NONE}")
-
-    while True:
-        try:
-            preco = float(input("Digite o preço do produto: "))
-            break
-        except ValueError:
-            print(f"{VERMELHO}Preço inválido! Use ponto para decimais (ex: 10.50).{NONE}")
-
-    novo_produto = {
-        "id": id_atual,
-        "nome": nome,
-        "quantidade": quantidade,
-        "preco": preco
-    }
-
-    estoque_da_loja.append(novo_produto)
-    salvar_estoque_csv(estoque_da_loja)
-    registrar_log("Cadastro de novo produto", nome)
-
-    print(f"{VERDE}Produto '{nome}' cadastrado com sucesso!{NONE}")
-                                                   
-    
-    
-
-
-def listar_produtos(estoque_da_loja):
-    print(f"--- {AZUL}Lista de Produtos{NONE} ---")
-
-    if not estoque_da_loja:
-        print(f"{AMARELO}Nenhum produto cadastrado ainda.{NONE}")
-        return
-    
-    # Definindo larguras fixas para cada coluna
-    LARGURA_ID = 5
-    LARGURA_NOME = 20
-    LARGURA_QTD = 8
-    LARGURA_PRECO = 12 # Para R$ X.YY
-    
-    # Imprime o cabeçalho da tabela com alinhamento
-    print(f"{'ID':<{LARGURA_ID}} | {'Nome':<{LARGURA_NOME}} | {'Qtd':<{LARGURA_QTD}} | {'Preço':<{LARGURA_PRECO}}")
-    print("-" * (LARGURA_ID + LARGURA_NOME + LARGURA_QTD + LARGURA_PRECO + (3 * 3))) # A linha divisória
-    
-    for produto in estoque_da_loja:
-        # Formata o preço para 2 casas decimais e adiciona "R$"
-        preco_formatado = f"R$ {produto['preco']:.2f}" 
-
-        # Imprime cada linha de produto com alinhamento
-        print(f"{produto['id']:<{LARGURA_ID}} | {produto['nome']:<{LARGURA_NOME}} | {produto['quantidade']:<{LARGURA_QTD}} | {preco_formatado:<{LARGURA_PRECO}}")
-
-    print("-" * (LARGURA_ID + LARGURA_NOME + LARGURA_QTD + LARGURA_PRECO + (3 * 3))) # A linha divisória
-
-
-def editar_produto(estoque_da_loja):
-    print(f"=== {AZUL}Editar produto{NONE} ===")
-
-    if not estoque_da_loja:
-        print(f"{AMARELO}Nenhum produto cadastrado.{NONE}")
-        return
-
-    listar_produtos(estoque_da_loja)
-
-    try:
-        id_editar = int(input("Digite o ID do produto que deseja editar: "))
-    except ValueError:
-        print("ID inválido!")
-        id_editar = int(input("Digite o ID do produto que deseja editar: "))
-        
-
-    produto = next((item for item in estoque_da_loja if item["id"] == id_editar), None)
-
-    if produto is None:
-        print(f"{AMARELO}Produto não encontrado!{NONE}")
-        return
-
-    print(f"Produto selecionado: {produto['nome']}")
-    print(f"{AMARELO}Deixe o campo vazio para manter o valor atual.{NONE}")
-
-    novo_nome = input("Novo nome do produto: ").strip()
-    if novo_nome:
-        produto["nome"] = novo_nome
-
-    nova_quantidade = input("Nova quantidade do produto: ").strip()
-    if nova_quantidade:
-        try:
-            produto["quantidade"] = int(nova_quantidade)
-        except ValueError:
-            print(f"{VERMELHO}Quantidade inválida!{NONE} {AMARELO}Valor não alterado.{NONE}")
-
-    novo_preco = input("Novo preço do produto: ").strip()
-    if novo_preco:
-        try:
-            produto["preco"] = float(novo_preco)
-        except ValueError:
-            print(f"{VERMELHO}Preço inválido!{NONE} {AMARELO}Valor não alterado.{NONE}")
-
-    salvar_estoque_csv(estoque_da_loja)
-    registrar_log("Edição do produto", produto["nome"])
-    print(f"{VERDE}Produto atualizado com sucesso!{NONE}")
-
-
-def excluir_produto(estoque_da_loja):
-    print(f"=== {AZUL}Excluir produto{NONE} ===").upper()
-
-    if not estoque_da_loja:
-        print(f"{AMARELO}Nenhum produto cadastrado.{NONE}")
-        return
-
-    listar_produtos(estoque_da_loja)
-
-    try:
-        id_excluir = int(input("Digite o ID do produto que deseja excluir: "))
-    except ValueError:
-        print("ID inválido! Deve ser um número inteiro.")
-        return
-
-    produto = next((item for item in estoque_da_loja if item["id"] == id_excluir), None)
-    if produto is None:
-        print("Produto não encontrado.")
-        return
-
-    confirmacao = input(f"Tem certeza que deseja excluir '{produto['nome']}'? (S/N): ").strip().lower()
-    if confirmacao != "s":
-        print("Exclusão cancelada.")
-        return
-
-    estoque_da_loja.remove(produto)
-    salvar_estoque_csv(estoque_da_loja)
-    registrar_log("Exclusão do produto", produto["nome"])
-    print(f"Produto '{produto['nome']}' excluído com sucesso!")
-    
-    
-def limpar_lista(lista_produtos):
-    """
-    Exclui TODOS os produtos da lista e do arquivo, após confirmação.
-    """
-    global salvar_estoque_csv, registrar_log, nome_produto
-    print(f"--- {AZUL}Excluir Todos os Produtos{NONE} ---").upper()
-    
-    if not lista_produtos:
-        print(f"{AMARELO}A lista de produtos já está vazia.{NONE}")
-        return lista_produtos
-
-    # Confirmação de segurança
-    print(f"{AMARELO}ATENÇÃO: Esta ação é IRREVERSÍVEL.{NONE}")
-    print(f"{AMARELO}Você está prestes a apagar todos os {len(lista_produtos)} produtos do sistema.{NONE}")
-    
-    confirmacao = input(f"Digite 's' para confirmar: ").upper().strip()
-
-    # Verificação rigorosa para evitar acidentes
-    if confirmacao == 'S':
-        lista_produtos.clear()      # Limpa a lista em memória
-        salvar_estoque_csv(lista_produtos)  # Salva a lista vazia no arquivo JSON
-        
-        print(f"{VERDE}Todos os produtos foram excluídos com sucesso.{NONE}")
-    else:
-        print("f{VERDE}Ação cancelada. Nenhum produto foi excluído.{NONE}")
-
-    return lista_produtos
-
-def realizar_venda():
-    pass
-
-def fila_de_vendas():    #usando as filas
-    pass
-
-def desfazer_ultima_operação():    #usando as pilhas
-    pass
-
-def exibir_valor_total_estoque():
-    pass
-
-def exibir_valor_total_vendas():
-    pass
-
-def total_gasto_cliente():
-    pass
+# Verifica se o arquivo atual e o principal para iniciar
+if __name__ == "__main__":
+    main()

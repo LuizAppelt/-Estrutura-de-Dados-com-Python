@@ -7,14 +7,14 @@ def LimparTerminal():
 # Lista Encadeada: Usada para Produtos e Clientes
 class ListaEncadeada:
     def __init__(self):
-        self.cabeca = None
+        self.head = None
 
     def inserir(self, dado):
         novo_nodo = Nodo(dado)
-        if self.cabeca is None:
-            self.cabeca = novo_nodo
+        if self.head is None:
+            self.head = novo_nodo
         else:
-            atual = self.cabeca
+            atual = self.head
             while atual.proximo is not None:
                 atual = atual.proximo
             atual.proximo = novo_nodo
@@ -38,7 +38,7 @@ class ListaEncadeada:
         return False # Retorna False se nao achou o ID
 
     def buscar_por_id(self, id_busca):
-        atual = self.cabeca
+        atual = self.head
         while atual is not None:
             if str(atual.dado.id) == str(id_busca):
                 return atual.dado
@@ -46,7 +46,7 @@ class ListaEncadeada:
         return None
         
     def buscar_por_nome(self, nome_busca):
-        atual = self.cabeca
+        atual = self.head
         resultados = []
         while atual is not None:
             # Transforma em minusculo para facilitar a busca
@@ -56,12 +56,12 @@ class ListaEncadeada:
         return resultados
 
     def remover_por_id(self, id_remover):
-        atual = self.cabeca
+        atual = self.head
         anterior = None
         while atual is not None:
             if str(atual.dado.id) == str(id_remover):
                 if anterior is None:
-                    self.cabeca = atual.proximo
+                    self.head = atual.proximo
                 else:
                     anterior.proximo = atual.proximo
                 return True
@@ -71,13 +71,13 @@ class ListaEncadeada:
 
     def listar_todos(self):
         lista = []
-        atual = self.cabeca
+        atual = self.head
         while atual is not None:
             lista.append(atual.dado)
             atual = atual.proximo
         return lista
 
-# Fila: Usada para Vendas (O primeiro a entrar e o primeiro a sair - FIFO)
+# Fila: Usada para Vendas (O primeiro sai - FIFO)
 class Fila:
     def __init__(self):
         self.frente = None
@@ -100,7 +100,7 @@ class Fila:
             atual = atual.proximo
         return lista
 
-    # Metodo extra para ajudar a desfazer a ultima venda (tira do final da fila)
+    # Metodo extra para ajudar a desfazer a ultima venda (tira do final da fila) PILHA LIFO
     def remover_ultimo(self):
         if self.frente is None:
             return

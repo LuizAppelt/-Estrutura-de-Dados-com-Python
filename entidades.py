@@ -6,13 +6,13 @@ class Nodo:
         self.dado = dado
         self.proximo = None
 
-# Modelagem do Cliente
+# MClasse do Cliente
 class Cliente:
     def __init__(self, id_cliente, nome):
         self.id = id_cliente
         self.nome = nome
 
-# Modelagem do Produto
+# classe do Produto
 class Produto:
     def __init__(self, id_produto, nome, quantidade, preco):
         self.id = id_produto
@@ -20,7 +20,7 @@ class Produto:
         self.quantidade = quantidade
         self.preco = preco
 
-# Modelagem da Venda
+# classe da Venda
 class Venda:
     def __init__(self, id_venda, id_cliente, id_produto, quantidade, valor_total):
         self.id = id_venda
