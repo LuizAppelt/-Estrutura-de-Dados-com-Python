@@ -173,11 +173,6 @@ python main.py
 
 ---
 
-## 📌 Observações Finais
-
-* Totalmente executado via terminal
-* Foco na aplicação prática de **estruturas de dados**
-* Código organizado e comentado para facilitar entendimento
-* Contribuição de todos os integrantes com commits reais
+## 📌 Observações Finais * O sistema é totalmente executado via terminal. * O foco principal é a aplicação prática de estruturas de dados. * O código foi desenvolvido com organização e comentários explicativos. * Todos os integrantes devem contribuir com commits reais no projeto.
 
 
