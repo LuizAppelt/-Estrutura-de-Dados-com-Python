@@ -180,9 +180,4 @@ python main.py
 * Código organizado e comentado para facilitar entendimento
 * Contribuição de todos os integrantes com commits reais
 
----
-
-Se você quiser, posso também criar uma **versão visual mais moderna com badges de Python, GitHub, build status e código de cores**, que deixa o README muito mais atrativo. Isso é útil especialmente se for subir no GitHub.
-
-Quer que eu faça essa versão também?
 
