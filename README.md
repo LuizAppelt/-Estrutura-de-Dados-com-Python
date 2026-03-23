@@ -42,11 +42,11 @@ Além disso, o sistema realiza **persistência automática dos dados** utilizand
 
 O projeto foi desenvolvido com foco na aplicação prática dos seguintes conceitos:
 
-* Programação Orientada a Objetos (POO)
-* Estruturas de Dados
-* Manipulação de arquivos
-* Tratamento de erros
-* Organização e modularização de código
+* Programação Orientada a Objetos (POO);
+* Estruturas de Dados;
+* Manipulação de arquivos;
+* Tratamento de erros;
+* Organização e modularização de código.
 
 ## 🏗️ Estruturas de Dados Utilizadas
 
@@ -54,15 +54,15 @@ O projeto foi desenvolvido com foco na aplicação prática dos seguintes concei
 
 Utilizada para armazenar:
 
-* Produtos
-* Clientes
+* Produtos;
+* Clientes.
 
 Permite:
 
-* Inserção
-* Remoção
-* Busca
-* Listagem
+* Inserção;
+* Remoção;
+* Busca;
+* Listagem.
 
 Foi implementada manualmente, sem uso de estruturas prontas da linguagem.
 
@@ -72,7 +72,7 @@ Foi implementada manualmente, sem uso de estruturas prontas da linguagem.
 
 Utilizada para armazenar:
 
-* Vendas realizadas
+* Vendas realizadas;
 
 As vendas são registradas na ordem em que acontecem, garantindo controle cronológico.
 
@@ -100,10 +100,10 @@ O sistema utiliza arquivos locais para armazenar os dados:
 
 ### 🔄 Funcionamento:
 
-* Ao iniciar o sistema, os arquivos são carregados automaticamente
-* Caso não existam, são criados automaticamente
-* Após qualquer alteração, os dados são salvos automaticamente
-* Não existe opção manual de salvar ou carregar
+* Ao iniciar o sistema, os arquivos são carregados automaticamente;
+* Caso não existam, são criados automaticamente;
+* Após qualquer alteração, os dados são salvos automaticamente;
+* Não existe opção manual de salvar ou carregar.
 
 Isso garante:
 
@@ -114,30 +114,30 @@ Isso garante:
 
 ## ⚙️ Funcionalidades do Sistema
 
-1. Cadastrar cliente
-2. Listar clientes
-3. Cadastrar produto
-4. Listar produtos
-5. Pesquisar produto
-6. Realizar venda
-7. Visualizar fila de vendas
-8. Desfazer última operação
-9. Exibir valor total do estoque
-10. Exibir valor total de vendas
-11. Exibir clientes e total gasto
-12. Sair
+1. Cadastrar cliente;
+2. Listar clientes;
+3. Cadastrar produto;
+4. Listar produtos;
+5. Pesquisar produto;
+6. Realizar venda;
+7. Visualizar fila de vendas;
+8. Desfazer última operação;
+9. Exibir valor total do estoque;
+10. Exibir valor total de vendas;
+11. Exibir clientes e total gasto;
+12. Sair.
 
 ---
 
 ## 📏 Regras de Negócio
 
-* Cliente deve estar cadastrado para realizar compra
-* Produto deve estar cadastrado para venda
-* Quantidade deve ser maior que zero
-* Preço deve ser maior que zero
-* Estoque nunca pode ficar negativo
-* Campos obrigatórios não podem estar vazios
-* Operações inválidas não alteram os dados
+* Cliente deve estar cadastrado para realizar compra;
+* Produto deve estar cadastrado para venda;
+* Quantidade deve ser maior que zero;
+* Preço deve ser maior que zero;
+* Estoque nunca pode ficar negativo;
+* Campos obrigatórios não podem estar vazios;
+* Operações inválidas não alteram os dados.
 
 ---
 
@@ -145,18 +145,18 @@ Isso garante:
 
 O sistema foi desenvolvido para ser resiliente, tratando erros como:
 
-* Entrada inválida do usuário
-* IDs inexistentes
-* Arquivos inexistentes ou corrompidos
-* Tentativas de operações inválidas
-* Falhas de leitura/escrita de arquivos
-* Dados inconsistentes
+* Entrada inválida do usuário;
+* IDs inexistentes;
+* Arquivos inexistentes ou corrompidos;
+* Tentativas de operações inválidas;
+* Falhas de leitura/escrita de arquivos;
+* Dados inconsistentes.
 
 Sempre que ocorre um erro:
 
-* O usuário é informado
-* A operação é cancelada
-* O sistema continua funcionando normalmente
+* O usuário é informado;
+* A operação é cancelada;
+* O sistema continua funcionando normalmente.
 
 ---
 
