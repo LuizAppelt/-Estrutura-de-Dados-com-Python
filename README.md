@@ -12,6 +12,8 @@ Mini Sistema de Estoque e Vendas com Persistência em Arquivos
 
 Gabriel Pasuch Granja - 1138917
 
+Guilherme Silva - 1133534
+
 Guilherme Vieira Marques - 1138951
 
 Luiz Henrique Appelt Weller - 1138930
