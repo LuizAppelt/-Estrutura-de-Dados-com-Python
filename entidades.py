@@ -1,30 +1,66 @@
 # entidades.py
 
-# Classe basica para as estruturas de dados
+from dataclasses import dataclass
+
+# Classe básica para estruturas de dados (lista encadeada)
 class Nodo:
     def __init__(self, dado):
         self.dado = dado
         self.proximo = None
 
-# MClasse do Cliente
+    def __repr__(self):
+        return f"Nodo(dado={self.dado})"
+
+
+# Classe Cliente
+@dataclass
 class Cliente:
-    def __init__(self, id_cliente, nome):
-        self.id = id_cliente
-        self.nome = nome
+    id: int
+    nome: str
 
-# classe do Produto
+    def __post_init__(self):
+        if not self.nome:
+            raise ValueError("Nome do cliente não pode ser vazio")
+
+    def __repr__(self):
+        return f"Cliente(id={self.id}, nome='{self.nome}')"
+
+
+# Classe Produto
+@dataclass
 class Produto:
-    def __init__(self, id_produto, nome, quantidade, preco):
-        self.id = id_produto
-        self.nome = nome
-        self.quantidade = quantidade
-        self.preco = preco
+    id: int
+    nome: str
+    quantidade: int
+    preco: float
 
-# classe da Venda
+    def __post_init__(self):
+        if self.quantidade < 0:
+            raise ValueError("Quantidade não pode ser negativa")
+        if self.preco < 0:
+            raise ValueError("Preço não pode ser negativo")
+
+    def __repr__(self):
+        return (f"Produto(id={self.id}, nome='{self.nome}', "
+                f"quantidade={self.quantidade}, preco={self.preco})")
+
+
+# Classe Venda
+@dataclass
 class Venda:
-    def __init__(self, id_venda, id_cliente, id_produto, quantidade, valor_total):
-        self.id = id_venda
-        self.id_cliente = id_cliente
-        self.id_produto = id_produto
-        self.quantidade = quantidade
-        self.valor_total = valor_total
+    id: int
+    id_cliente: int
+    id_produto: int
+    quantidade: int
+    valor_total: float
+
+    def __post_init__(self):
+        if self.quantidade <= 0:
+            raise ValueError("Quantidade deve ser maior que zero")
+        if self.valor_total < 0:
+            raise ValueError("Valor total não pode ser negativo")
+
+    def __repr__(self):
+        return (f"Venda(id={self.id}, cliente={self.id_cliente}, "
+                f"produto={self.id_produto}, quantidade={self.quantidade}, "
+                f"total={self.valor_total})")
